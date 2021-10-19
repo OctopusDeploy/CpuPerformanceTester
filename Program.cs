@@ -11,7 +11,7 @@ namespace CpuPerformanceTester
     {
         public static void Main()
         {
-            for(var n = 1; n < 20; n++)
+            for(var n = 1; n < 50; n++)
                 Run(n);
         }
 
