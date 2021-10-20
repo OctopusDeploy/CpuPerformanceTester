@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 
@@ -11,11 +12,54 @@ namespace CpuPerformanceTester
     {
         public static void Main()
         {
+            for(var n = 1; n < 10; n++)
+                RunDiskTest(n);
+
             for(var n = 1; n < 50; n++)
-                Run(n);
+                RunCpuTest(n);
         }
 
-        public static void Run(int threadCount)
+        static void RunDiskTest(int threadCount)
+        {
+            var sw = Stopwatch.StartNew();
+
+            var threads = Enumerable.Range(0, threadCount)
+                .Select(_ => new Thread(WriteAndReadFile))
+                .ToArray();
+
+            foreach (var thread in threads)
+                thread.Start();
+
+            foreach (var thread in threads)
+                thread.Join();
+
+            var elapsed = sw.ElapsedMilliseconds;
+            Console.WriteLine($"Disk with {threadCount} threads took {elapsed}ms ({elapsed/threadCount}ms per thread)");
+        }
+
+        private static void WriteAndReadFile()
+        {
+            var filename = "TestFile" + Guid.NewGuid();
+
+            var rnd = new Random();
+
+            var buffer = new byte[20000];
+            using (var f = File.OpenWrite(filename))
+            {
+                var itterations = 500_000_000 / buffer.Length;
+                for (var x = 0; x < itterations; x++)
+                {
+                    rnd.NextBytes(buffer);
+                    f.Write(buffer, 0, buffer.Length);
+                }
+            }
+            using (var f = File.OpenRead(filename))
+                while (f.Read(buffer, 0, buffer.Length) > 0)
+                {
+                }
+        }
+
+        public static void RunCpuTest(int threadCount)
         {
             var sw = Stopwatch.StartNew();
 
@@ -30,7 +74,7 @@ namespace CpuPerformanceTester
                 thread.Join();
 
             var elapsed = sw.ElapsedMilliseconds;
-            Console.WriteLine($"{threadCount} threads took {elapsed}ms ({elapsed/threadCount}ms per thread)");
+            Console.WriteLine($"CPU with {threadCount} threads took {elapsed}ms ({elapsed/threadCount}ms per thread)");
         }
 
         static long FindPrimeNumber(int n)
