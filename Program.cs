@@ -40,16 +40,16 @@ namespace CpuPerformanceTester
         private static void WriteAndReadFile()
         {
             var filename = "TestFile" + Guid.NewGuid();
+            var buffer = new byte[200000];
 
             var rnd = new Random();
+            rnd.NextBytes(buffer);
 
-            var buffer = new byte[20000];
             using (var f = File.OpenWrite(filename))
             {
-                var itterations = 500_000_000 / buffer.Length;
+                var itterations = 1_000_000_000 / buffer.Length;
                 for (var x = 0; x < itterations; x++)
                 {
-                    rnd.NextBytes(buffer);
                     f.Write(buffer, 0, buffer.Length);
                 }
             }
